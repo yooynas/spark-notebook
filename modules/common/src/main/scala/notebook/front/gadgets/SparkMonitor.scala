@@ -1,6 +1,7 @@
 package org.apache.spark.ui.notebook.front.gadgets
 
 import notebook.JobTracking
+import org.apache.spark.ui.jobs.UIData.JobUIData
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
@@ -15,6 +16,7 @@ import play.api.libs.json._
 import notebook.util.Logging
 
 case class JobInfo(jobId: Int,
+                   jobDescr: Option[String],
                    completedTasks: Int,
                    totalTasks: Int,
                    submissionTime: Option[Long],
@@ -75,18 +77,22 @@ class SparkMonitor(sparkContext:SparkContext, checkInterval:Long = 1000) extends
       val completedJobs = listener.completedJobs.toList
       val failedJobs = listener.failedJobs.toList
 
-      val jobsByStageId = (for {
+      val jobsByStageId: Map[Int, JobUIData] = (for {
         j <- activeJobs ::: completedJobs ::: failedJobs
         stageId <- j.stageIds
       } yield stageId → j).toMap
 
       val jobGroupsById = jobsByStageId.values.groupBy(_.jobId).mapValues(_.head.jobGroup)
+      val jobsById = jobsByStageId.values.groupBy(_.jobId).mapValues(_.head)
+
+      def jobIdToCellId(jobId: Int) = JobTracking.toCellId(jobsById(jobId).jobGroup)
 
       val stageStats: Seq[JobInfo] = (activeStagesList ++ completedStages ++ pendingStages).flatMap { s: StageInfo =>
         val stageDataOption = listener.stageIdToData.get((s.stageId, s.attemptId))
         stageDataOption.map { stageData =>
           JobInfo(
             jobId = jobsByStageId(s.stageId).jobId,
+            jobDescr = stageData.description,
             completedTasks = stageData.completedIndices.size,
             totalTasks = s.numTasks,
             submissionTime = s.submissionTime,
@@ -101,6 +107,7 @@ class SparkMonitor(sparkContext:SparkContext, checkInterval:Long = 1000) extends
           jobStages.reduce { (j1: JobInfo, j2: JobInfo) =>
             JobInfo(
               jobId = j1.jobId,
+              jobDescr = (j1.jobDescr ++ j2.jobDescr).headOption,
               completedTasks = j1.completedTasks + j2.completedTasks,
               totalTasks = j1.totalTasks + j2.totalTasks,
               submissionTime = minOption(j1.submissionTime ++ j2.submissionTime),
@@ -109,7 +116,20 @@ class SparkMonitor(sparkContext:SparkContext, checkInterval:Long = 1000) extends
           }
         }.toSeq
 
-      jobStats.map { j =>
+      val jobStatsOfLastCellRun: Seq[JobInfo] = jobStats
+        .groupBy(j => jobIdToCellId(j.jobId))
+        .mapValues { cellStats =>
+          val statsByRunId = cellStats.groupBy(s => JobTracking.getCellRunId(s.jobDescr))
+          // when runId doesn't exist (cell id undefined), we return as is
+          val withoutRunId = statsByRunId.filter { case (runId, _) => runId.isEmpty }.toSeq
+          // when runId exists, take the last run only!
+          val withRunId = statsByRunId.filter { case (runId, _) => runId.isDefined }
+          val lastRun = withRunId.toSeq.sortBy { case (Some(runId), _) => -runId }.last
+
+          (withoutRunId :+ lastRun).map { case (runId, jobInfo) => jobInfo }
+        }.values.flatten.flatten.toSeq
+
+      jobStatsOfLastCellRun.map { j =>
         val jobGroup = jobGroupsById(j.jobId)
         val cellId = JobTracking.toCellId(jobGroup)
         val jobDuration: Option[Long] = j.submissionTime.map(t => j.completionTime.getOrElse(System.currentTimeMillis) - t)
