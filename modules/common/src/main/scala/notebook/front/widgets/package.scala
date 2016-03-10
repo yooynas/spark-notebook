@@ -2,6 +2,7 @@ package notebook.front
 
 import scala.util.Random
 import scala.xml.{NodeSeq, UnprefixedAttribute, Null}
+import scala.language.postfixOps
 import play.api.libs.json._
 import com.vividsolutions.jts.geom.Geometry
 import org.wololo.geojson.GeoJSON
@@ -109,6 +110,85 @@ package object widgets {
     def appendAll(s:Seq[String]) {
       apply(data ++ s)
     }
+  }
+
+  def qplot[C:ToPoints:Sampler](
+    c:C,
+    x:String=null, y:String=null,
+    geom:List[String]=Nil, fill:String=null,
+    method:String="", formula:String=null, color:String=null,
+    main:String="", xlab:String="", ylab:String="",
+    width:String="150px", height:String="150px"
+  ) = {
+    val toPoints = implicitly[ToPoints[C]]
+    val points = toPoints(c, toPoints.count(c).toInt)
+    val ps = points.head.headers.zipWithIndex.map { case (h, i) =>
+      h → points.map(_.values(i))
+    }
+    val cols = ps.map { case (h, vs) =>
+    val arr = vs.map(v => toJson(v).toString)
+      s"""
+       $h <- c(${arr.mkString(",")})
+      """
+    }.mkString("")
+    val r = s"""
+    $cols
+
+    df <- data.frame(${ps.map(_._1).mkString(",")})
+    """
+    import sys.process._
+
+    val scriptFile = java.io.File.createTempFile("r-script", ".R")
+    val img = java.io.File.createTempFile("r-plot", ".png")
+
+    def addString(param:String, s:String) = s match {
+      case "" => ""
+      case x  => s""", $param = "$s" """
+    }
+    def addAny(param:String, a:Any) = Option(a) match {
+      case None => ""
+      case Some(x)  => s""", $param = $a """
+    }
+
+
+    val geoms = geom.map(x => s""" "$x" """).mkString(",")
+
+    val plot = s"""
+    library(ggplot2)
+
+
+    q <- qplot(data=df
+               ${addAny("x", x)}
+               ${addAny("y", y)}
+               ,geom=c($geoms)
+               ${addString("main", main)}
+               ${addString("xlab", xlab)}
+               ${addString("ylab", ylab)}
+
+               ,alpha=I(.5)
+               ${addString("method", method)}
+               ${addAny("formula", formula)}
+               ${addAny("color", color)}
+               ${addAny("fill", fill)}
+              )
+    ggsave("${img.getAbsolutePath}", plot=q)
+    dev.off()
+    """
+
+    val script = s"""
+    $r
+
+    $plot
+    """
+    val w = new java.io.FileWriter(scriptFile)
+    w.write(script)
+    w.close()
+
+    Process(s"Rscript ${scriptFile.getAbsolutePath}") !!
+
+    val i = widgets.img("png", width, height)
+    i.file(img)
+    i
   }
 
   def out = new SingleConnectedWidget[String] {

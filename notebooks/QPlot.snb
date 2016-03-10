@@ -1,0 +1,227 @@
+{
+  "metadata" : {
+    "name" : "QPlot",
+    "user_save_timestamp" : "1970-01-01T01:00:00.000Z",
+    "auto_save_timestamp" : "1970-01-01T01:00:00.000Z",
+    "language_info" : {
+      "name" : "scala",
+      "file_extension" : "scala",
+      "codemirror_mode" : "text/x-scala"
+    },
+    "trusted" : true,
+    "customLocalRepo" : null,
+    "customRepos" : null,
+    "customDeps" : null,
+    "customImports" : null,
+    "customArgs" : null,
+    "customSparkConf" : null
+  },
+  "cells" : [ {
+    "metadata" : {
+      "id" : "2D571E3F82424F4080D5BB2E222D57C1"
+    },
+    "cell_type" : "markdown",
+    "source" : "# QPlot"
+  }, {
+    "metadata" : {
+      "id" : "8DFC9A1BAD974742BE5B1E25828F19F7"
+    },
+    "cell_type" : "markdown",
+    "source" : "> Warning:\n>\n> You'll need `R` install locally, \n> you'll also need `ggplot2` \n> * ```install.packages(\"ggplot2\")```\n> * or on ubuntu, ```apt-get install r-cran-ggplot2```.\n>"
+  }, {
+    "metadata" : {
+      "id" : "0484E38D76AF4EFA87B9582587728FE7"
+    },
+    "cell_type" : "markdown",
+    "source" : "#Cars"
+  }, {
+    "metadata" : {
+      "id" : "281343A362F3495399844B78225EC361"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Data"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "E39FD8741B1C4992985C084AE6CB72BE"
+    },
+    "cell_type" : "code",
+    "source" : "case class Car(model:String, mpg:Double, cyl:String, disp:Double, hp:Double, drat:Double, wt:Double, qsec:Double, vs:Double, am:String, gear:String, carb:Double)",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "defined class Car\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 1
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "23484468D5E745A88AC771249EA3FF3B"
+    },
+    "cell_type" : "code",
+    "source" : ":sh wget https://gist.githubusercontent.com/seankross/a412dfbd88b3db70b74b/raw/5f23f993cd87c283ce766e7ac6b329ee7cc2e1d1/mtcars.csv -O /tmp/mtcars.csv",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "--2016-03-10 10:36:55--  https://gist.githubusercontent.com/seankross/a412dfbd88b3db70b74b/raw/5f23f993cd87c283ce766e7ac6b329ee7cc2e1d1/mtcars.csv\nResolving gist.githubusercontent.com (gist.githubusercontent.com)... 185.31.17.133\nConnecting to gist.githubusercontent.com (gist.githubusercontent.com)|185.31.17.133|:443... connected.\nHTTP request sent, awaiting response... 200 OK\nLength: 1700 (1.7K) [text/plain]\nSaving to: ‘/tmp/mtcars.csv’\n\n     0K .                                                     100% 1.04G=0s\n\n2016-03-10 10:36:56 (1.04 GB/s) - ‘/tmp/mtcars.csv’ saved [1700/1700]\n\n\nimport sys.process._\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/plain" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 2
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "45AA664E4979497B82DDA14B0E4A767D"
+    },
+    "cell_type" : "code",
+    "source" : "val cars = {\n  val headers :: lines = scala.io.Source.fromFile(\"/tmp/mtcars.csv\").getLines.toList\n  \n  lines.map(_.split(\",\").toList).map{case model::mpg::cyl::disp::hp::drat::wt::qsec::vs::am::gear::carb::Nil => \n                                             Car(model,mpg.toDouble,cyl+\"cyl\",disp.toDouble,hp.toDouble,drat.toDouble,wt.toDouble,\n                                                 qsec.toDouble,vs.toDouble,if(am.toInt==1)\"Manual\"else\"Automatic\",gear+\"gears\",carb.toDouble)\n                                              case _ => ???\n                                            }\n}",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "cars: List[Car] = List(Car(Mazda RX4,21.0,6cyl,160.0,110.0,3.9,2.62,16.46,0.0,Manual,4gears,4.0), Car(Mazda RX4 Wag,21.0,6cyl,160.0,110.0,3.9,2.875,17.02,0.0,Manual,4gears,4.0), Car(Datsun 710,22.8,4cyl,108.0,93.0,3.85,2.32,18.61,1.0,Manual,4gears,1.0), Car(Hornet 4 Drive,21.4,6cyl,258.0,110.0,3.08,3.215,19.44,1.0,Automatic,3gears,1.0), Car(Hornet Sportabout,18.7,8cyl,360.0,175.0,3.15,3.44,17.02,0.0,Automatic,3gears,2.0), Car(Valiant,18.1,6cyl,225.0,105.0,2.76,3.46,20.22,1.0,Automatic,3gears,1.0), Car(Duster 360,14.3,8cyl,360.0,245.0,3.21,3.57,15.84,0.0,Automatic,3gears,4.0), Car(Merc 240D,24.4,4cyl,146.7,62.0,3.69,3.19,20.0,1.0,Automatic,4gears,2.0), Car(Merc 230,22.8,4cyl,140.8,95.0,3.92,3.15,22.9,1.0,Automatic,4gears,2.0), Car(Merc 280,19.2,6cyl,167.6,123.0,3.92,3.44,18.3,1.0,Automat..."
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 3
+    } ]
+  }, {
+    "metadata" : {
+      "id" : "6CE76626C59340C59C9CC6ECE201598A"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Plots"
+  }, {
+    "metadata" : {
+      "id" : "A9C2E8E7C91343868AC1E50582DEFF49"
+    },
+    "cell_type" : "markdown",
+    "source" : "Based on the example page on [qplot](http://www.statmethods.net/advgraphs/ggplot2.html)."
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "D21749B5D65C4AE8819E68FF8457FB22"
+    },
+    "cell_type" : "code",
+    "source" : "qplot(cars, x=\"mpg\", geom=List(\"density\"), fill=\"gear\", main=\"Distribution of Gas Milage\", xlab=\"Miles Per Gallon\", ylab=\"Density\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "res6: notebook.front.SingleConnectedWidget[java.awt.image.BufferedImage]{implicit val codec: notebook.Codec[play.api.libs.json.JsValue,java.awt.image.BufferedImage]; lazy val toHtml: scala.xml.Elem; def url(u: java.net.URL): Unit; def file(f: java.io.File): Unit} = <anon$3 widget>\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<p>\n      <img width=\"150px\" height=\"150px\" data-bind=\"attr:{src: value}\"/>\n        <script data-this=\"{&quot;valueId&quot;:&quot;anond1ac2b1490f39da26fca076568de6381&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n            /*]]>*/</script>\n      </p>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 4
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "0A2A8CCF1B614B068E369219049886D6"
+    },
+    "cell_type" : "code",
+    "source" : "qplot(cars, x=\"wt\", y=\"mpg\", geom=List(\"point\", \"smooth\"), \n   method=\"lm\", formula=\"y~x\", color=\"cyl\", \n   main=\"Regression of MPG on Weight\", \n   xlab=\"Weight\", ylab=\"Miles per Gallon\",\n   width=\"500px\", height=\"500px\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "res8: notebook.front.SingleConnectedWidget[java.awt.image.BufferedImage]{implicit val codec: notebook.Codec[play.api.libs.json.JsValue,java.awt.image.BufferedImage]; lazy val toHtml: scala.xml.Elem; def url(u: java.net.URL): Unit; def file(f: java.io.File): Unit} = <anon$3 widget>\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : "<p>\n      <img width=\"500px\" height=\"500px\" data-bind=\"attr:{src: value}\"/>\n        <script data-this=\"{&quot;valueId&quot;:&quot;anon98ed3ec2fefb4b4c38c0e88729563f69&quot;}\" type=\"text/x-scoped-javascript\">/*<![CDATA[*/\nreq(\n['observable', 'knockout'],\nfunction (O, ko) {\n  ko.applyBindings({\n      value: O.makeObservable(valueId)\n    },\n    this\n  );\n});\n            /*]]>*/</script>\n      </p>"
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 5
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : true,
+      "id" : "17B64EF3639F43CAA18A75BF53FC1720"
+    },
+    "cell_type" : "markdown",
+    "source" : "## Data Frame, well Spark ones"
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "3CB406C6E4274AD8BEC06263BACEAB03"
+    },
+    "cell_type" : "code",
+    "source" : "val sqlc = new org.apache.spark.sql.SQLContext(sparkContext)\nimport sqlc.implicits._",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "sqlc: org.apache.spark.sql.SQLContext = org.apache.spark.sql.SQLContext@1d7bce0b\nimport sqlc.implicits._\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 7
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "4EC59B5EE5D1453BB95D6ED529AF98E0"
+    },
+    "cell_type" : "code",
+    "source" : "val carsDF = cars.toDF",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "carsDF: org.apache.spark.sql.DataFrame = [model: string, mpg: double, cyl: string, disp: double, hp: double, drat: double, wt: double, qsec: double, vs: double, am: string, gear: string, carb: double]\n"
+    }, {
+      "metadata" : { },
+      "data" : {
+        "text/html" : ""
+      },
+      "output_type" : "execute_result",
+      "execution_count" : 8
+    } ]
+  }, {
+    "metadata" : {
+      "trusted" : true,
+      "input_collapsed" : false,
+      "collapsed" : false,
+      "id" : "B29249CE2AA84E048DEEFC388B13CB20"
+    },
+    "cell_type" : "code",
+    "source" : "qplot(carsDF, x=\"mpg\")",
+    "outputs" : [ {
+      "name" : "stdout",
+      "output_type" : "stream",
+      "text" : "java.lang.RuntimeException: Nonzero exit value: 1\n\tat scala.sys.package$.error(package.scala:27)\n\tat scala.sys.process.ProcessBuilderImpl$AbstractBuilder.slurp(ProcessBuilderImpl.scala:131)\n\tat scala.sys.process.ProcessBuilderImpl$AbstractBuilder.$bang$bang(ProcessBuilderImpl.scala:101)\n\tat notebook.front.widgets.package$.qplot(package.scala:187)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:73)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:80)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:82)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:84)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:86)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:88)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:90)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:92)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:94)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:96)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:98)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:100)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:102)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:104)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:106)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:108)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:110)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:112)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:114)\n\tat $iwC$$iwC$$iwC$$iwC$$iwC.<init>(<console>:116)\n\tat $iwC$$iwC$$iwC$$iwC.<init>(<console>:118)\n\tat $iwC$$iwC$$iwC.<init>(<console>:120)\n\tat $iwC$$iwC.<init>(<console>:122)\n\tat $iwC.<init>(<console>:124)\n\tat <init>(<console>:126)\n\tat .<init>(<console>:130)\n\tat .<clinit>(<console>)\n\tat .<init>(<console>:7)\n\tat .<clinit>(<console>)\n\tat $print(<console>)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:606)\n\tat org.apache.spark.repl.SparkIMain$ReadEvalPrint.call(SparkIMain.scala:1065)\n\tat org.apache.spark.repl.SparkIMain$Request.loadAndRun(SparkIMain.scala:1346)\n\tat org.apache.spark.repl.SparkIMain.loadAndRunReq$1(SparkIMain.scala:840)\n\tat org.apache.spark.repl.SparkIMain.interpret(SparkIMain.scala:871)\n\tat org.apache.spark.repl.SparkIMain.interpret(SparkIMain.scala:819)\n\tat notebook.kernel.Repl$$anonfun$6.apply(Repl.scala:200)\n\tat notebook.kernel.Repl$$anonfun$6.apply(Repl.scala:200)\n\tat scala.util.DynamicVariable.withValue(DynamicVariable.scala:57)\n\tat scala.Console$.withOut(Console.scala:126)\n\tat notebook.kernel.Repl.evaluate(Repl.scala:199)\n\tat notebook.client.ReplCalculator$$anonfun$10$$anon$1$$anonfun$27.replEvaluate$1(ReplCalculator.scala:401)\n\tat notebook.client.ReplCalculator$$anonfun$10$$anon$1$$anonfun$27.apply(ReplCalculator.scala:414)\n\tat notebook.client.ReplCalculator$$anonfun$10$$anon$1$$anonfun$27.apply(ReplCalculator.scala:395)\n\tat scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)\n\tat scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)\n\tat akka.dispatch.TaskInvocation.run(AbstractDispatcher.scala:40)\n\tat akka.dispatch.ForkJoinExecutorConfigurator$AkkaForkJoinTask.exec(AbstractDispatcher.scala:397)\n\tat scala.concurrent.forkjoin.ForkJoinTask.doExec(ForkJoinTask.java:260)\n\tat scala.concurrent.forkjoin.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1339)\n\tat scala.concurrent.forkjoin.ForkJoinPool.runWorker(ForkJoinPool.java:1979)\n\tat scala.concurrent.forkjoin.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:107)\n\n"
+    } ]
+  } ],
+  "nbformat" : 4
+}
