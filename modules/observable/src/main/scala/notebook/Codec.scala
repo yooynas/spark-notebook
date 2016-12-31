@@ -62,7 +62,11 @@ object JsonCodec {
     def encode(v: JsValue): Int = v match {
       case JsString(s) => s.toInt
       case JsNumber(i) => i.toInt
-      case _ => throw new RuntimeException(s"Cannot encode $v as int")
+      case JsArray(_) => throw new RuntimeException("JsArray can't be converted to int.")
+      case JsBoolean(_) => throw new RuntimeException("JsBoolean can't be converted to int.")
+      case JsNull =>  throw new RuntimeException("JsNull can't be converted to int.")
+      case JsObject(_) =>  throw new RuntimeException("JsObject can't be converted to int.")
+      case JsUndefined() =>  throw new RuntimeException("JsUndefined can't be converted to int.")
     }
   }
 
