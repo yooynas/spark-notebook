@@ -2,7 +2,7 @@ package utils
 
 import notebook.io.{ConfigurationMissingException, GitProvider, GitProviderConfigurator}
 import com.datafellas.g3nerator.{FileProjectStore, ProjectManager}
-import com.datafellas.notebook.adastyx.server.AdastyxConfig
+import com.datafellas.notebook.adastyx.server.SbtProjectGenConfig
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.Await
@@ -16,7 +16,7 @@ object SbtProjectGenUtils {
   def config = {
     val conf = current.configuration.getConfig("sbt-project-generation")
       .getOrElse(throw new RuntimeException("Could not find [sbt-project-generation] configuration"))
-    AdastyxConfig(conf)
+    SbtProjectGenConfig(conf)
   }
 
   def projectsDirName: String = {

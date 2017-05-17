@@ -6,7 +6,7 @@ import com.typesafe.config.Config
 import scala.concurrent.duration._
 import play.api.{Logger, _}
 
-case class AdastyxConfig(config: Configuration) { me =>
+case class SbtProjectGenConfig(config: Configuration) { me =>
 
   import play.api.Play.current
 
