@@ -35,10 +35,12 @@ object SbtProjectGenUtils {
   }
 
   lazy val projectManager = {
-    // make sure GitProvider is initialized Before creating FileProjectStore
-    // (as Git provider seem to force-pull stuff, while FileProjectStore must create a new file if one does not exists)
-    gitProvider
-    Try(new ProjectManager(projectsDir, projectStore.get, gitProvider))
+    Try {
+      // make sure GitProvider is initialized Before creating FileProjectStore
+      // (as Git provider seem to force-pull stuff, while FileProjectStore must create a new file if one does not exists)
+      gitProvider
+      new ProjectManager(projectsDir, projectStore.get, gitProvider)
+    }
   }
 
   lazy val projectStore = Try(new FileProjectStore(projectsDir))
